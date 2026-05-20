@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VITA Kombucha Spectrum</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400&display=swap');
+
+  :root {
+    --bg: #f7f4ef;
+    --ink: #1c1a17;
+    --muted: #9a9088;
+    --border: rgba(0,0,0,0.07);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Jost', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 72px 24px 48px;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.2s forwards;
+  }
+
+  .header-eyebrow {
+    font-family: 'Jost', sans-serif;
+    font-weight: 200;
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(32px, 6vw, 56px);
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+
+  .header-sub {
+    font-family: 'Jost', sans-serif;
+    font-weight: 200;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .header-line {
+    width: 40px;
+    height: 1px;
+    background: var(--muted);
+    margin: 24px auto 0;
+    opacity: 0.4;
+  }
+
+  /* Group label */
+  .group-label {
+    font-family: 'Jost', sans-serif;
+    font-weight: 200;
+    font-size: 9px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    margin: 40px 0 16px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  /* Spectrum container */
+  .spectrum-wrap {
+    padding: 0 20px 80px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .spectrum-group {
+    margin-bottom: 8px;
+  }
+
+  .swatches {
+    display: flex;
+    gap: 3px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* Individual swatch */
+  .swatch {
+    position: relative;
+    width: 56px;
+    cursor: pointer;
+    opacity: 0;
+    animation: fadeUp 0.5s ease forwards;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .swatch-color {
+    width: 100%;
+    height: 120px;
+    border-radius: 2px;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Glow overlay */
+  .swatch-color::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.5) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    border-radius: 2px;
+  }
+
+  .swatch:active .swatch-color,
+  .swatch.playing .swatch-color {
+    transform: scaleY(1.06) translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+
+  .swatch.playing .swatch-color::after {
+    opacity: 1;
+  }
+
+  /* Ripple glow */
+  .swatch-glow {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 120px;
+    border-radius: 2px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.1s;
+  }
+
+  .swatch.playing .swatch-glow {
+    animation: glowPulse 1.2s ease forwards;
+  }
+
+  @keyframes glowPulse {
+    0% { opacity: 0; transform: scale(1); }
+    20% { opacity: 0.6; transform: scale(1.08); }
+    100% { opacity: 0; transform: scale(1.2); }
+  }
+
+  .swatch-name {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 8.5px;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    margin-top: 6px;
+    text-align: center;
+    line-height: 1.3;
+    writing-mode: horizontal-tb;
+  }
+
+  .swatch-hex {
+    font-family: 'Jost', sans-serif;
+    font-weight: 200;
+    font-size: 7.5px;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 2px;
+  }
+
+  /* Tooltip on desktop */
+  .swatch-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background: var(--ink);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    padding: 5px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 10;
+  }
+
+  .swatch:hover .swatch-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 32px 24px 48px;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer p {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 600px) {
+    .swatch { width: 42px; }
+    .swatch-color { height: 90px; }
+    .swatch-glow { height: 90px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">Fermented Color Palette · Merged & Organized</div>
+  <h1>VITA Kombucha<br>Spectrum</h1>
+  <div class="header-sub">Tap a swatch to hear its tone</div>
+  <div class="header-line"></div>
+</div>
+
+<div class="spectrum-wrap" id="spectrumWrap"></div>
+
+<div class="footer">
+  <p>A curated consolidation of unique colors from varied Kombucha batches,<br>harmonized for spectral analysis and selection. All unique tones retained and organized.</p>
+</div>
+
+<script>
+const groups = [
+  {
+    label: 'Berry & Crimson — Warm-Leaning',
+    swatches: [
+      { name: 'Black Cherry',   hex: '#3B0A1F' },
+      { name: 'Crimson Tea',    hex: '#8B1A2A' },
+      { name: 'Red Ruby',       hex: '#A52030' },
+      { name: 'Garnet',         hex: '#7B1F32' },
+      { name: 'Fireberry',      hex: '#C0392B' },
+      { name: 'Red Currant',    hex: '#B33040' },
+      { name: 'Pink Rose',      hex: '#D4637A' },
+      { name: 'Red Ochre',      hex: '#C1604A' },
+      { name: 'Blush Peach',    hex: '#E8A090' },
+    ]
+  },
+  {
+    label: 'Orange & Peach — Warm',
+    swatches: [
+      { name: 'Aged Gold',      hex: '#C68A2A' },
+      { name: 'Sunset Gold',    hex: '#D4943A' },
+      { name: 'Topaz',          hex: '#C87941' },
+      { name: 'Amber Tea',      hex: '#C97B3A' },
+      { name: 'Honeyed Peach',  hex: '#E09B60' },
+    ]
+  },
+  {
+    label: 'Tan & Russet',
+    swatches: [
+      { name: '#C9404B',        hex: '#C9404B' },
+      { name: 'Oak Bark',       hex: '#7A4F38' },
+      { name: 'Desert Pink',    hex: '#D4876A' },
+      { name: 'FE#45676',       hex: '#C87B5A' },
+      { name: 'Spiced Tea',     hex: '#B86B48' },
+      { name: 'Deep Apricot',   hex: '#D4855A' },
+      { name: 'Malted Tan',     hex: '#C4986A' },
+    ]
+  },
+  {
+    label: 'Yellow & Pale',
+    swatches: [
+      { name: 'Marigold',           hex: '#E8B830' },
+      { name: 'Gilded Honey',       hex: '#D4A832' },
+      { name: 'Sun-bleached Peach', hex: '#E8C88A' },
+      { name: 'Gold Leaf',          hex: '#C8A830' },
+      { name: 'Light Gold',         hex: '#D8C070' },
+      { name: 'Creamed Gold',       hex: '#E8D4A0' },
+    ]
+  },
+  {
+    label: 'Pale & White',
+    swatches: [
+      { name: 'Oat Milk',        hex: '#F0E8D8' },
+      { name: 'Sunlight',        hex: '#F4EDD0' },
+      { name: 'White Sun',       hex: '#F8F2E0' },
+      { name: 'Ivory Detail',    hex: '#F5EDD8' },
+      { name: 'Ecru Detail',     hex: '#EDE4CC' },
+      { name: 'Porcelain Detail',hex: '#F2EAD8' },
+      { name: 'Bone Detail',     hex: '#E8DEC8' },
+      { name: 'Detail White',    hex: '#FAF6EE' },
+    ]
+  },
+  {
+    label: 'Lavender & Purple — Cool',
+    swatches: [
+      { name: 'Pale Lilac',       hex: '#C4B8D8' },
+      { name: 'PF8BBD0',          hex: '#B8B0D0' },
+      { name: 'Pastel Lavender',  hex: '#C8C0DC' },
+      { name: 'Blush Lavender',   hex: '#D4C0C8' },
+      { name: 'Driftwood Purple', hex: '#8A7898' },
+    ]
+  },
+  {
+    label: 'Green & Deep Cool',
+    swatches: [
+      { name: 'Sage Green',  hex: '#90A888' },
+      { name: 'Plum Purple', hex: '#5A3868' },
+      { name: 'Amethyst',    hex: '#6A4878' },
+    ]
+  },
+];
+
+// Note frequencies — pentatonic scale across all swatches
+const noteFreqs = [
+  261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88,
+  523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77,
+  1046.50,1174.66,1318.51,1396.91,1567.98,1760.00,1975.53,
+  2093.00,2349.32,2637.02,2793.83,3135.96,3520.00,3951.07,
+  4186.01,4698.64,5274.04,5587.65,6271.93,7040.00,7902.13,
+  8372.02,9397.27,10548.1,
+];
+
+let audioCtx = null;
+let swatchIndex = 0;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playTone(freq, color) {
+  const ctx = getAudioCtx();
+  const now = ctx.currentTime;
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+
+  // Soft sine wave
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, now);
+  osc.frequency.exponentialRampToValueAtTime(freq * 0.998, now + 1.8);
+
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(2000, now);
+  filter.frequency.exponentialRampToValueAtTime(800, now + 1.5);
+
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.18, now + 0.06);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + 1.9);
+}
+
+function buildSpectrum() {
+  const wrap = document.getElementById('spectrumWrap');
+  let globalIdx = 0;
+
+  groups.forEach((group, gi) => {
+    const labelEl = document.createElement('div');
+    labelEl.className = 'group-label';
+    labelEl.textContent = group.label;
+    labelEl.style.animationDelay = `${0.3 + gi * 0.1}s`;
+    wrap.appendChild(labelEl);
+
+    const groupEl = document.createElement('div');
+    groupEl.className = 'spectrum-group';
+
+    const swatchesEl = document.createElement('div');
+    swatchesEl.className = 'swatches';
+
+    group.swatches.forEach((sw, si) => {
+      const idx = globalIdx++;
+      const freq = noteFreqs[idx % noteFreqs.length];
+
+      const div = document.createElement('div');
+      div.className = 'swatch';
+      div.style.animationDelay = `${0.4 + gi * 0.08 + si * 0.04}s`;
+
+      // Glow element
+      const glow = document.createElement('div');
+      glow.className = 'swatch-glow';
+      glow.style.background = `radial-gradient(circle, ${sw.hex}88 0%, ${sw.hex}00 70%)`;
+
+      const colorDiv = document.createElement('div');
+      colorDiv.className = 'swatch-color';
+      colorDiv.style.background = sw.hex;
+
+      const nameEl = document.createElement('div');
+      nameEl.className = 'swatch-name';
+      nameEl.textContent = sw.name;
+
+      const hexEl = document.createElement('div');
+      hexEl.className = 'swatch-hex';
+      hexEl.textContent = sw.hex.toUpperCase();
+
+      const tooltip = document.createElement('div');
+      tooltip.className = 'swatch-tooltip';
+      tooltip.textContent = `${sw.name} · ${sw.hex.toUpperCase()}`;
+
+      div.appendChild(glow);
+      div.appendChild(colorDiv);
+      div.appendChild(nameEl);
+      div.appendChild(hexEl);
+      div.appendChild(tooltip);
+
+      // Interaction
+      function activate() {
+        playTone(freq, sw.hex);
+        div.classList.add('playing');
+        // re-trigger glow animation
+        glow.style.animation = 'none';
+        glow.offsetHeight;
+        glow.style.animation = '';
+        setTimeout(() => div.classList.remove('playing'), 1200);
+      }
+
+      div.addEventListener('click', activate);
+      div.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        activate();
+      }, { passive: false });
+
+      swatchesEl.appendChild(div);
+    });
+
+    groupEl.appendChild(swatchesEl);
+    wrap.appendChild(groupEl);
+  });
+}
+
+buildSpectrum();
+</script>
+</body>
+</html>
